@@ -3,11 +3,11 @@ package app;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 public class MyCalculator {
 
@@ -44,6 +44,7 @@ public class MyCalculator {
         Font digitalFont = loadDigitalFont(50);
         textField.setFont(digitalFont);
         textField.setBackground(new Color(197, 235, 156));
+        textField.addKeyListener(createKeyListener());
         panel.add(textField, BorderLayout.NORTH);
 
         //создаем панель с кнопками
@@ -67,6 +68,15 @@ public class MyCalculator {
         return panel;
     }
 
+    private KeyListener createKeyListener(){
+        return new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                e.consume();
+            }
+        };
+    }
+
     private ActionListener createButtonListener(JTextField textField, String text) {
         return e -> {
             if (text.matches("[0-9]")) {
@@ -81,17 +91,62 @@ public class MyCalculator {
         };
     }
 
-    private String evaluateExpression(String expression) { //expression - строка принемающая математическое выражение
+    private String evaluateExpression(String expression) {
         try {
-            ScriptEngineManager manager = new ScriptEngineManager();
-            ScriptEngine engine = manager.getEngineByName("JavaScript");
-            Object result = engine.eval(expression);
-            return result.toString();
-        } catch (ScriptException e) {
-            e.printStackTrace();
-            return "Ошибка";
+//            // Заменяем запятые на точки
+//            expression = expression.replace(',', '.');
+
+            // Разделяем выражение на токены (операнды и оператор) с помощью пробелов
+            String[] tokens = expression.split(" ");
+
+            // Получаем первый операнд из массива токенов и преобразуем его в double
+            double firstOperand = Double.parseDouble(tokens[0]);
+
+            // Получаем второй операнд из массива токенов и преобразуем его в double
+            double secondOperand = Double.parseDouble(tokens[2]);
+
+            // Получаем оператор из массива токенов
+            String operator = tokens[1];
+
+            // Объявляем переменную для хранения результата
+            double result;
+
+            // Выбираем действие в зависимости от оператора
+            switch (operator) {
+                case "+":
+                    // Если оператор "+", то складываем операнды и сохраняем результат
+                    result = firstOperand + secondOperand;
+                    break;
+                case "-":
+                    // Если оператор "-", то вычитаем операнды и сохраняем результат
+                    result = firstOperand - secondOperand;
+                    break;
+                case "*":
+                    // Если оператор "*", то умножаем операнды и сохраняем результат
+                    result = firstOperand * secondOperand;
+                    break;
+                case "/":
+                    // Если оператор "/", проверяем деление на ноль
+                    if (secondOperand == 0) {
+                        return "Ошибка: деление на ноль";
+                    }
+                    // Делим операнды и сохраняем результат
+                    result = firstOperand / secondOperand;
+                    break;
+                default:
+                    // Если оператор неизвестен, возвращаем ошибку
+                    return "Некорректное выражение";
+            }
+
+            // Преобразуем результат в строку и возвращаем его
+            return String.valueOf(result);
+        } catch (Exception e) {
+            return "Некорректное выражение";
         }
     }
+
+
+
 
 
 }
